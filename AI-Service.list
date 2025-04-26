@@ -36,9 +36,12 @@ IP-CIDR,24.199.123.28/32,no-resolve
 IP-CIDR,64.23.132.171/32,no-resolve
 IP-ASN,20473,no-resolve
 #gemini
+DOMAIN-SUFFIX,notebooklm.google.com
+DOMAIN-SUFFIX,makersuite.google.com
+DOMAIN,alkalicore-pa.clients6.google.com
+DOMAIN-SUFFIX,aistudio.google.com
+notebooklm.google.com
 DOMAIN,ai.google.dev
-DOMAIN,alkalimakersuite-pa.clients6.google.com
-DOMAIN,makersuite.google.com
 DOMAIN-SUFFIX,bard.google.com
 DOMAIN-SUFFIX,deepmind.com
 DOMAIN-SUFFIX,deepmind.google
@@ -61,3 +64,8 @@ DOMAIN-SUFFIX,x.ai
 DOMAIN-SUFFIX,huggingface.co
 DOMAIN-SUFFIX,hf.space
 DOMAIN-SUFFIX,perplexity.ai
+####
+DOMAIN-SUFFIX,openart.ai
+DOMAIN-SUFFIX,jasper.ai
+DOMAIN-SUFFIX,meta.ai
+DOMAIN-SUFFIX,dify.ai
