@@ -61,6 +61,8 @@ DOMAIN-SUFFIX,x.ai
 DOMAIN-SUFFIX,huggingface.co
 DOMAIN-SUFFIX,hf.space
 DOMAIN-SUFFIX,perplexity.ai
+##microsoft copilot
+DOMAIN-SUFFIX,copilot.microsoft.com
 ####
 DOMAIN-SUFFIX,openart.ai
 DOMAIN-SUFFIX,jasper.ai
