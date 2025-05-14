@@ -1,0 +1,439 @@
+# Clash 配置文件
+
+# DNS 配置
+dns:
+  enable: true
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - +.+m2m
+    - +.$injections.adguard.org
+    - +.$local.adguard.org
+    - +.+bogon
+    - +.+lan
+    - +.+localdomain
+    - +.home.arpa
+    - dns.msftncsi.com
+    - "*.srv.nintendo.net"
+    - "*.stun.playstation.net"
+    - xbox.*.microsoft.com
+    - "*.xboxlive.com"
+    - "*.turn.twilio.com"
+    - "*.stun.twilio.com"
+    - stun.syncthing.net
+    - stun.*
+    - "*.sslip.io"
+    - "*.nip.io"
+  respect-rules: true
+  nameserver:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+  nameserver-policy:
+    geosite:cn:
+      - https://1.12.12.12/dns-query
+      - https://223.5.5.5/dns-query
+  proxy-server-nameserver:
+    - https://1.12.12.12/dns-query
+    - https://223.5.5.5/dns-query
+
+
+#-------------------------------------------------------
+#代理集锚点
+Proxy_group: &Proxy_group {type: http, interval: 86400, exclude-filter: "(?i)(官网|剩余|流量|套餐|\\.com)"}
+
+# 代理集
+proxy-providers:
+  ikuu:
+    url: "https://b67vt.no-mad-world.club/link/AAkoK0lWLhvo21gm?clash=3&extend=1"
+    <<: *Proxy_group
+    override:
+      additional-prefix: "[ikuu]"
+    
+  eggtart:
+    url: "https://45.137.181.206/api/v1/client/subscribe?token=6010ec506e1ec4370dfa1f8fbdb44b72"
+    <<: *Proxy_group
+    override:
+      additional-prefix: "[蛋挞]"
+
+  CAC:
+    url: "https://submit.xz61.cn:23443/api/v1/client/subscribe?token=d36552f2715b6d06ebb56320551e7d70"
+    <<: *Proxy_group
+    override:
+      additional-prefix: "[CAC]"
+
+
+# -------------------------------------------------------
+# 代理组配置 (proxy-groups) - 已按要求重新排序并调整过滤器
+proxy-groups:
+  # 1. 主代理选择组
+  - name: 🚀 Proxy
+    type: select
+    proxies:
+      - 🇭🇰 HK
+      - 🇼🇸 TW
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+      - 🇺🇸 US
+      - 🏴‍☠️ Other
+
+  # 2. Telegram 代理组
+  - name: ✈️ Telegram
+    type: select
+    proxies:
+      - 🚀 Proxy
+      - 📉 Low Rate
+    # 筛选包含新加坡、香港、台湾关键词且不含专线或家宽的节点
+    filter: "(?i)(?=.*(🇸🇬|新|坡|香港|hk|台|tw))(?=^(?!.*(专线|家宽|home)).*$)^.*$"
+    include-all: true
+
+  # 3. AI 服务代理组
+  - name: 🤖 AI Service
+    type: select
+    filter: "(?i)(?=.*蛋挞)(?=.*(?:台湾|tw|🇹🇼|🇼🇸)).*"
+    include-all: true
+
+  # 4. Google 代理组 (非 YouTube)
+  - name: 🌐 Google
+    type: select
+    proxies:
+      - 🇼🇸 TW      
+      - 🚀 Proxy
+      - 🇭🇰 HK
+      - 🇺🇸 US
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+
+  # 5. YouTube 代理组
+  - name: ▶️ YouTube
+    type: select
+    proxies:
+      - 📉 Low Rate
+      - 🚀 Proxy
+      - 🌐 Google
+  # 筛选包含香港或台湾关键词且不含专线或家宽的节点
+    filter: "(?i)(?=.*(香港|hk|台|tw))(?=^(?!.*(专线|家宽|home)).*$)^.*$"
+    include-all: true
+
+  # 6. 低倍率节点组
+  - name: 📉 Low Rate
+    type: select
+    proxies:
+      - 🚀 Proxy      
+      - 🆓ikuu
+    filter: (?i)(?=.*CAC)(?=.*(香港|hk|台|tw|坡|sg|日|jp)).*$
+    include-all: true
+
+  #ikun
+  - name: 🆓ikuu 
+    type: fallback
+    url: 'https://www.gstatic.com/generate_204'
+    interval: 600
+    lazy: true
+    include-all: true
+    filter: "(?i)(?=.*(ikuu))^.*$"
+    hidden: true
+    
+
+  # 7. 香港节点
+  - name: 🇭🇰 HK
+    type: select
+    # 筛选包含香港关键词的节点
+    filter: "(?i)(?=.*(香港|hk))^.*$"
+    include-all: true
+
+  # 8. 台湾节点
+  - name: 🇼🇸 TW
+    type: select
+    # 筛选包含台湾关键词的节点
+    filter: "(?i)(?=.*(台|tw))^.*$"
+    include-all: true
+
+  # 9. 日本节点
+  - name: 🇯🇵 JP
+    type: select
+    # 筛选包含日本关键词的节点
+    filter: "(?i)(?=.*(日|jp))^.*$"
+    include-all: true
+  
+  # 10. 新加坡节点
+  - name: 🇸🇬 SG
+    type: select
+    # 筛选包含新加坡关键词的节点
+    filter: "(?i)(?=.*(新|sg))^.*$"
+    include-all: true
+
+  # 11. 美国节点
+  - name: 🇺🇸 US
+    type: select
+    # 筛选包含美国关键词的节点
+    filter: "(?i)(?=.*(美|us))^.*$"
+    include-all: true
+
+  # 12. 其他地区节点
+  - name: 🏴‍☠️ Other
+    type: select
+    # 筛选不包含主要地区关键词及“下方”的节点
+    filter: "(?i)(?=.*(^(?!.*(香港|hk|台|tw|美|us|坡|新|sg|日|jp|下方)).*$))^.*$"
+    include-all: true
+  
+  # 13. Microsoft 服务组
+  - name: Ⓜ️ Microsoft
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 Proxy
+      - 🇭🇰 HK
+      - 🇼🇸 TW
+      - 🇺🇸 US
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+      - 🏴‍☠️ Other
+      - 📉 Low Rate
+    # 此处不再需要通用排除过滤器
+
+  # 14. Apple 服务组
+  - name: 🍎 APPLE
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 Proxy
+      - 🇭🇰 HK
+      - 🇼🇸 TW
+      - 🇺🇸 US
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+      - 🏴‍☠️ Other
+      - 📉 Low Rate
+    # 此处不再需要通用排除过滤器
+
+  - name: GLOBAL
+    type: select
+    include-all: true
+
+# -------------------------------------------------------
+# 域名和ip锚点
+# classical: 匹配域名或 IP 的规则类型
+RuleSet_classical: &RuleSet_classical {type: http, behavior: classical, interval: 43200, format: text, proxy: 🚀 Proxy}
+# domain: 仅匹配域名的规则类型
+RuleSet_domain: &RuleSet_domain {type: http, behavior: domain, interval: 43200, format: text, proxy: 🚀 Proxy}
+# ipcidr: 匹配 CIDR 格式 IP 段的规则类型
+RuleSet_ipcidr: &RuleSet_ipcidr {type: http, behavior: ipcidr, interval: 43200, format: text, proxy: 🚀 Proxy}
+
+
+# -------------------------------------------------------
+# 域名和ip集
+# -------------------------------------------------------
+rule-providers:
+#-------------------- 广告拦截规则--------------------
+
+  # reject_non_ip:
+  #   <<: *RuleSet_classical
+  #   url: https://ruleset.skk.moe/Clash/non_ip/reject.txt
+  #   path: './rule_set/sukkaw_ruleset/reject_non_ip.txt'
+  #
+  # reject_domainset:
+  #   <<: *RuleSet_domain
+  #   url: https://ruleset.skk.moe/Clash/domainset/reject.txt
+  #   path: './rule_set/sukkaw_ruleset/reject_domainset.txt'
+  #
+  # reject_ip:
+  #   <<: *RuleSet_classical
+  #   url: https://ruleset.skk.moe/Clash/ip/reject.txt
+  #   path: './rule_set/sukkaw_ruleset/reject_ip.txt'
+  # -----------------------------------------------------------------------------
+
+  #媒体平台quic阻止
+  reject_non_ip_no_drop:
+    <<: *RuleSet_classical
+    url: 'https://ruleset.skk.moe/Clash/non_ip/reject-no-drop.txt'
+    path: './rule_set/sukkaw_ruleset/reject_non_ip_no_drop.txt'
+  #防止Adobe无限跟踪
+  reject_non_ip_drop:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/reject-drop.txt
+    path: './rule_set/sukkaw_ruleset/reject_non_ip_drop.txt'
+
+  # CDN 规则集 (域名和非 IP)
+  cdn_domainset:
+    <<: *RuleSet_domain
+    url: https://ruleset.skk.moe/Clash/domainset/cdn.txt
+    path: ./rule_set/sukkaw_ruleset/cdn_domainset.txt
+  cdn_non_ip:
+    <<: *RuleSet_classical 
+    url: https://ruleset.skk.moe/Clash/non_ip/cdn.txt
+    path: ./rule_set/sukkaw_ruleset/cdn_non_ip.txt
+
+  # AI 服务规则集 (从 GitHub 获取)
+  AI_Service:
+    <<: *RuleSet_classical
+    url: https://raw.githubusercontent.com/Brian-Lynn/AkashaConfig/main/AI-Service.list
+    path: ./rule_set/ai_service.txt # 本地保存路径
+
+  # Telegram 规则集 (非 IP 和 IP)
+  telegram_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/telegram.txt
+    path: './rule_set/sukkaw_ruleset/telegram_non_ip.txt'
+
+  telegram_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/ip/telegram.txt
+    path: './rule_set/sukkaw_ruleset/telegram_ip.txt'
+
+  # Apple 服务规则集 (CDN, 服务, 中国大陆)
+  apple_cdn:
+    <<: *RuleSet_domain
+    url: https://ruleset.skk.moe/Clash/domainset/apple_cdn.txt
+    path: ./rule_set/sukkaw_ruleset/apple_cdn.txt
+
+  apple_services:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/apple_services.txt
+    path: ./rule_set/sukkaw_ruleset/apple_services.txt
+
+  apple_cn_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/apple_cn.txt
+    path: ./rule_set/sukkaw_ruleset/apple_cn_non_ip.txt
+
+  # Microsoft 服务规则集 (CDN, 主服务)
+  microsoft_cdn_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/microsoft_cdn.txt
+    path: ./rule_set/sukkaw_ruleset/microsoft_cdn_non_ip.txt
+
+  microsoft_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/microsoft.txt
+    path: ./rule_set/sukkaw_ruleset/microsoft_non_ip.txt
+
+  # Google 规则集
+  google_main:
+    <<: *RuleSet_classical
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Surge/Google/Google.list
+    path: ./rule_set/google_main.txt
+
+  google_youtube:
+    <<: *RuleSet_classical
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Surge/YouTube/YouTube_Resolve.list
+    path: ./rule_set/google_resolve.txt # 文件名应为 google_youtube.txt 或类似，保持一致性
+
+  # 软件更新、操作系统等大文件下载规则 (指向低倍率节点组)
+  download_domainset:
+    <<: *RuleSet_domain
+    url: https://ruleset.skk.moe/Clash/domainset/download.txt
+    path: ./rule_set/sukkaw_ruleset/download_domainset.txt
+
+  download_non_ip:
+    <<: *RuleSet_domain # 应该是 classical 或 domain，根据实际内容，原配置为 domain
+    url: https://ruleset.skk.moe/Clash/non_ip/download.txt
+    path: ./rule_set/sukkaw_ruleset/download_non_ip.txt
+
+  # 个人规则集
+  BeanRules:
+    <<: *RuleSet_classical
+    url: https://raw.githubusercontent.com/Brian-Lynn/AkashaConfig/main/BeanRules.conf
+    path: ./rule_set/BeanRules.txt
+
+  # 内网域名和局域网 IP 规则集
+  lan_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/lan.txt
+    path: ./rule_set/sukkaw_ruleset/lan_non_ip.txt
+
+  lan_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/ip/lan.txt
+    path: './rule_set/sukkaw_ruleset/lan_ip.txt'
+
+  # 国内域名和 IP 规则集
+  domestic_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/domestic.txt
+    path: './rule_set/sukkaw_ruleset/domestic_non_ip.txt'
+
+  # DIRECT 规则集 (直接连接)
+  direct_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/direct.txt
+    path: './rule_set/sukkaw_ruleset/direct_non_ip.txt'
+
+  # GLOBAL 规则集 (全局代理，非 IP)
+  global_non_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/non_ip/global.txt
+    path: ./rule_set/sukkaw_ruleset/global_non_ip.txt
+
+  # 国内 IP 规则集
+  domestic_ip:
+    <<: *RuleSet_classical
+    url: https://ruleset.skk.moe/Clash/ip/domestic.txt
+    path: './rule_set/sukkaw_ruleset/domestic_ip.txt'
+
+  # 中国 IP 规则集 (CIDR)
+  china_ip:
+    <<: *RuleSet_ipcidr
+    url: https://ruleset.skk.moe/Clash/ip/china_ip.txt
+    path: './rule_set/sukkaw_ruleset/china_ip.txt'
+
+# -------------------------------------------------------
+# 规则集
+# 流量按顺序匹配规则，匹配到即停止，因此ip类一定要放到域名类下面，避免不必要的dns解析。
+# -------------------------------------------------------
+rules:
+  # 个人直连集
+  - RULE-SET,BeanRules,DIRECT
+
+  # 直连或国内流量规则
+  - RULE-SET,domestic_non_ip,DIRECT
+  - RULE-SET,direct_non_ip,DIRECT
+  - RULE-SET,lan_non_ip,DIRECT
+
+
+  # AIGC,Telegram
+  - RULE-SET,AI_Service,🤖 AI Service # AI 服务流量指向 AI Service 组
+  - RULE-SET,telegram_non_ip,✈️ Telegram # Telegram (非 IP) 流量指向 Telegram 组
+
+  # Google 规则 (YouTube 独立分流)
+  - RULE-SET,google_main,🌐 Google # 其他 Google 流量指向 Google 组
+  - RULE-SET,google_youtube,▶️ YouTube # YouTube 流量指向 YouTube 组
+  # 大文件下载规则
+  - RULE-SET,download_domainset,📉 Low Rate
+  - RULE-SET,download_non_ip,📉 Low Rate
+
+  # 全球 CDN 规则 (使用主代理)
+  - RULE-SET,cdn_domainset, 📉 Low Rate
+  - RULE-SET,cdn_non_ip,📉 Low Rate
+
+  # Apple 服务规则 (调整顺序)
+  - RULE-SET,apple_cdn,DIRECT # Apple CDN 流量直连
+  - RULE-SET,apple_cn_non_ip,🍎 APPLE # 中国大陆 Apple 服务流量指向 Apple 组
+  - RULE-SET,apple_services,🍎 APPLE # 其他 Apple 服务流量指向 Apple 组
+
+  # Microsoft 服务规则 (调整顺序)
+  - RULE-SET,microsoft_cdn_non_ip,DIRECT # Microsoft CDN 流量直连
+  - RULE-SET,microsoft_non_ip,Ⓜ️ Microsoft # 其他 Microsoft 服务流量指向 Microsoft 组
+
+  # 全局代理规则 (非 IP)
+  - RULE-SET,global_non_ip,🚀 Proxy
+
+  # -------------------- 注释掉的广告拦截规则 (如需使用请取消注释) --------------------
+  # - RULE-SET,reject_non_ip,REJECT
+  # - RULE-SET,reject_domainset,REJECT
+  # - RULE-SET,reject_non_ip_drop,REJECT-DROP
+  # - RULE-SET,reject_non_ip_no_drop,REJECT
+  # -----------------------------------------------------------------------------
+  #拒绝QUIC
+  - RULE-SET,reject_non_ip_drop,REJECT-DROP
+  - RULE-SET,reject_non_ip_no_drop,REJECT
+  # IP 类规则
+  - RULE-SET,telegram_ip,✈️ Telegram # Telegram (IP) 流量指向 Telegram 组
+  - RULE-SET,lan_ip,DIRECT
+  - RULE-SET,domestic_ip,DIRECT
+  - RULE-SET,china_ip,DIRECT
+  # - RULE-SET,reject_ip,REJECT
+
+
+  # 默认规则：所有未匹配上述规则的流量都将指向主代理组
+  - MATCH,🚀 Proxy
