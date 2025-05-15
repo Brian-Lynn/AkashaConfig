@@ -165,7 +165,7 @@ proxy-groups:
       - CAC
     filter: "(?i)(?=.*(🇸🇬|新|坡|香港|hk|台|tw))(?=^(?!.*(专线|家宽|home)).*$)^.*$"
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '🤖 AI Service'
     type: select
@@ -173,9 +173,9 @@ proxy-groups:
       - ikuu
       - eggtart
       - CAC
-    filter: "(?i)(?=.*蛋挞)(?=.*(?:台湾|tw|🇹🇼|🇼🇸)).*"
+    filter: "(?i)(?=.*(?:台湾|tw|🇹🇼|🇼🇸)).*"
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '🌐 Google'
     type: select
@@ -187,7 +187,7 @@ proxy-groups:
       - '🇯🇵 JP'
       - '🇸🇬 SG'
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '▶️ YouTube'
     type: select
@@ -201,7 +201,7 @@ proxy-groups:
       - CAC
     filter: "(?i)(?=.*(香港|hk|台|tw))(?=^(?!.*(专线|家宽|home)).*$)^.*$"
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '📉 Low Rate'
     type: select
@@ -214,7 +214,7 @@ proxy-groups:
       - CAC
     filter: '(?i)(?=.*CAC)(?=.*(香港|hk|台|tw|坡|sg|日|jp)).*$' # YAML中单引号内的内容如果包含特殊正则元字符，有时双引号更安全，但此处单引号通常也可
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '🆓ikuu'
     type: fallback
@@ -234,7 +234,7 @@ proxy-groups:
       - CAC
     filter: "(?i)(?=.*(香港|hk))^.*$"
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '🇼🇸 TW'
     type: select
@@ -244,7 +244,7 @@ proxy-groups:
       - CAC
     filter: "(?i)(?=.*(台|tw))^.*$"
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '🇯🇵 JP'
     type: select
@@ -253,8 +253,8 @@ proxy-groups:
       - eggtart
       - CAC
     filter: "(?i)(?=.*(日|jp))^.*$"
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    #url: 'http://www.gstatic.com/generate_204'
+    #interval: 1200
 
   - name: '🇸🇬 SG'
     type: select
@@ -263,8 +263,8 @@ proxy-groups:
       - eggtart
       - CAC
     filter: "(?i)(?=.*(新|sg))^.*$"
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    #url: 'http://www.gstatic.com/generate_204'
+    #interval: 1200
 
   - name: '🇺🇸 US'
     type: select
@@ -273,8 +273,8 @@ proxy-groups:
       - eggtart
       - CAC
     filter: "(?i)(?=.*(美|us))^.*$"
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    #url: 'http://www.gstatic.com/generate_204'
+    #interval: 1200
 
   - name: '🏴‍☠️ Other'
     type: select
@@ -283,8 +283,8 @@ proxy-groups:
       - eggtart
       - CAC
     filter: "(?i)(?=.*(^(?!.*(香港|hk|台|tw|美|us|坡|新|sg|日|jp|下方)).*$))^.*$"
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    #url: 'http://www.gstatic.com/generate_204'
+    #interval: 1200
 
   - name: 'Ⓜ️ Microsoft'
     type: select
@@ -299,7 +299,7 @@ proxy-groups:
       - '🏴‍☠️ Other'
       - '📉 Low Rate'
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: '🍎 APPLE'
     type: select
@@ -314,7 +314,7 @@ proxy-groups:
       - '🏴‍☠️ Other'
       - '📉 Low Rate'
     url: 'http://www.gstatic.com/generate_204'
-    interval: 300
+    interval: 1200
 
   - name: GLOBAL
     type: select
