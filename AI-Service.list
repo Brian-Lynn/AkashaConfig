@@ -23,6 +23,7 @@ DOMAIN-SUFFIX,launchdarkly.com
 DOMAIN-SUFFIX,oaistatic.com
 DOMAIN-SUFFIX,oaiusercontent.com
 DOMAIN-SUFFIX,observeit.net
+DOMAIN-SUFFIX,openart.ai
 DOMAIN-SUFFIX,openai.com
 DOMAIN-SUFFIX,openaiapi-site.azureedge.net
 DOMAIN-SUFFIX,openaicom.imgix.net
@@ -54,17 +55,21 @@ DOMAIN-KEYWORD,generativelanguage
 DOMAIN,cdn.usefathom.com
 DOMAIN-SUFFIX,anthropic.com
 DOMAIN-SUFFIX,claude.ai
-#grok
-DOMAIN-SUFFIX,grok.com
-DOMAIN-SUFFIX,x.ai
-#haggingface
-DOMAIN-SUFFIX,huggingface.co
-DOMAIN-SUFFIX,hf.space
-DOMAIN-SUFFIX,perplexity.ai
-##microsoft copilot
-DOMAIN-SUFFIX,copilot.microsoft.com
+
 ####
-DOMAIN-SUFFIX,openart.ai
+
 DOMAIN-SUFFIX,jasper.ai
 DOMAIN-SUFFIX,meta.ai
 DOMAIN-SUFFIX,dify.ai
+
+#################
+
+#grok#
+#DOMAIN-SUFFIX,grok.com
+#DOMAIN-SUFFIX,x.ai
+#haggingface
+#DOMAIN-SUFFIX,huggingface.co
+#DOMAIN-SUFFIX,hf.space
+#DOMAIN-SUFFIX,perplexity.ai
+#microsoft copilot
+#DOMAIN-SUFFIX,copilot.microsoft.com

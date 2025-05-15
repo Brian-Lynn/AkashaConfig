@@ -1,0 +1,610 @@
+# Stash 配置文件 (优化版)
+# 旨在更接近 mihomo 的行为并包含优化建议
+
+# 混合端口，同时支持 HTTP 和 SOCKS5
+mixed-port: 7890
+# 允许局域网连接
+allow-lan: true
+# 规则模式
+mode: rule
+# 日志级别 (info, warning, error, debug, silent)
+log-level: info
+# IPv6 支持 (根据原 mihomo 配置)
+ipv6: false
+# 外部控制 API 地址
+external-controller: 127.0.0.1:9090
+# 外部 UI 文件夹路径 (例如 yacd-dashboard)
+# external-ui: dashboard
+# 配置文件更改时自动重载 (Stash Mac/iOS 特有)
+auto-reload: true
+# (可选) 统一延迟计算 (url-test, fallback 组中的延迟会加上 TCP 握手时间)
+# unified-delay: true
+
+
+# DNS 配置
+dns:
+  enable: true
+  ipv6: false # 全局禁用 IPv6 DNS 解析 (AAAA 记录)
+  enhanced-mode: fake-ip # 使用 Fake IP 模式是防止 DNS 泄露的关键
+  fake-ip-range: 198.18.0.1/16 # Fake IP 地址池
+  # 当域名匹配以下规则时，不使用 Fake IP，而是返回真实 IP (通常用于局域网、特定服务)
+  fake-ip-filter:
+    - '+.lan'
+    - '+.local'
+    - '+.internal' # 常见内部域名后缀
+    - '+.home.arpa'
+    - 'localhost'
+    - 'router.asus.com' # 示例：路由器管理页面
+    - 'dns.msftncsi.com'
+    - '*.srv.nintendo.net'
+    - '*.stun.playstation.net'
+    - 'xbox.*.microsoft.com'
+    - '*.xboxlive.com'
+    - '*.turn.twilio.com'
+    - '*.stun.twilio.com'
+    - 'stun.syncthing.net'
+    - 'stun.*'
+    - '*.sslip.io'
+    - '*.nip.io'
+    - '+.+m2m'
+    - '+.$injections.adguard.org'
+    - '+.$local.adguard.org'
+    - '+.+bogon'
+  # 默认 DNS 服务器，用于解析 nameserver 中配置的 DNS 服务器域名 (如果它们是域名而非 IP)
+  # 以及在 Stash 启动早期或特定情况下使用。建议使用稳定快速的 IP 地址。
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  # 上游 DNS 服务器。Fake IP 模式下，这些服务器主要用于解析那些不由代理处理的直连域名。
+  # 对于通过代理的域名，DNS 解析通常由代理服务器完成。
+  nameserver:
+    - https://dns.alidns.com/dns-query # 阿里云 DNS (DoH)
+    - https://doh.pub/dns-query      # DNSPod DNS (DoH)
+  # (可选) Stash 特定功能：为特定域名指定 DNS 服务器
+  # 这主要影响直连域名的解析。
+  nameserver-policy:
+    # 对于中国大陆的域名 (如果规则匹配到 GEOIP,CN,DIRECT)，使用系统 DNS
+    # 注意：Stash 的 nameserver-policy 的键是域名或域名通配符，不是 GEOIP。
+    # 实现 mihomo 中 geosite:cn 走特定 DNS 的方式，通常是结合规则和这里的 policy。
+    # 如果希望所有 DIRECT 的 CN 域名都走 system DNS，可以在规则中确保它们被 DIRECT，
+    # 然后在这里配置一个广泛的国内域名通配符 (如果可行) 或依赖 nameserver 中的国内 DNS。
+    # 或者，更简单的方式是，如果 GEOIP,CN,DIRECT 规则存在，并且 nameserver 列表包含国内 DNS，
+    # Stash 会优先选择国内 DNS 解析这些直连的国内域名。
+    # 'GEOIP,CN': system # Stash 不支持此格式，此行仅为示意原 mihomo 意图
+    '+.cn': system # 示例：所有 .cn 后缀域名使用系统 DNS
+    '+.com.cn': system
+    # 为其他特定直连域名指定 DNS：
+    # 'specific-direct-domain.com': 223.6.6.6
+  # (可选) 跳过 DoH/DoT 服务器的证书验证 (不推荐，除非必要)
+  # skip-cert-verify: false
+  # (可选) DNS 查询是否遵循代理规则 (通常不推荐，可能导致 DNS 污染或性能问题)
+  # follow-rule: false
+
+# (可选) Sniffer 配置：用于嗅探流量中的域名，提高规则匹配准确性，特别是在 IP 规则之前。
+sniffer:
+  enable: true
+  # 强制嗅探的端口 (如果流量目的地是这些端口，即使已有域名信息也尝试嗅探)
+  # force-domain:
+  #   - '+.example.com' # 强制嗅探 example.com 及其子域名
+  # 跳过嗅探的域名
+  skip-domain:
+    - 'Mijia Cloud'
+    - '*.push.apple.com'
+  # 嗅探的协议和端口，override-destination 表示是否用嗅探到的域名覆盖原始目标 (如果原始目标是 IP)
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+      override-destination: true
+    QUIC: # QUIC 嗅探相对实验性，如果遇到问题可以禁用
+      ports: [443, 8443]
+      override-destination: true
+
+# (可选) Hosts 配置：自定义域名解析，优先级高于 DNS 查询
+# hosts:
+#   'example.com': 192.168.1.100
+#   '*.dev': 127.0.0.1
+
+ (可选) TUN 模式配置 (如果需要全局代理所有流量)
+ tun:
+   enable: true
+   stack: system # 或 gvisor, mixed (macOS/iOS 推荐 system)
+   dns-hijack: # 劫持发往这些地址的 DNS 请求到 Stash 内置 DNS
+     - any:53
+   auto-route: true # 自动配置系统路由表 (需要管理员权限)
+   auto-detect-interface: true # 自动检测出口网络接口
+    strict-route: true # 更严格的路由，防止泄露 (某些情况下可能导致局域网访问问题)
+
+# 代理集 (Proxy Providers)
+proxy-providers:
+  ikuu:
+    type: http
+    url: "https://b67vt.no-mad-world.club/link/AAkoK0lWLhvo21gm?clash=3&extend=1"
+    interval: 86400
+    path: ./providers/ikuu.yaml
+    # Stash 的覆写 (override) 是通过独立的 .stoverride 文件实现的，功能更强大
+    # 如果需要修改节点名称，建议使用 Stash Override
+    # vehicle-type: http # Stash 自动检测订阅类型，通常不需要指定
+
+  eggtart:
+    type: http
+    url: "https://45.137.181.206/api/v1/client/subscribe?token=6010ec506e1ec4370dfa1f8fbdb44b72"
+    interval: 86400
+    path: ./providers/eggtart.yaml
+
+  CAC:
+    type: http
+    url: "https://submit.xz61.cn:23443/api/v1/client/subscribe?token=d36552f2715b6d06ebb56320551e7d70"
+    interval: 86400
+    path: ./providers/CAC.yaml
+
+# 策略组 (Proxy Groups)
+proxy-groups:
+  - name: 🚀 Proxy
+    type: select
+    proxies:
+      - 🇭🇰 HK
+      - 🇼🇸 TW
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+      - 🇺🇸 US
+      - 🏴‍☠️ Other
+      - DIRECT # 确保 DIRECT 在需要的地方
+
+  - name: ✈️ Telegram
+    type: select
+    proxies:
+      - 🚀 Proxy
+      - 📉 Low Rate
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(🇸🇬|新|坡|香港|hk|台|tw))(?=^(?!.*(专线|家宽|home)).*$)^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🤖 AI Service
+    type: select
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*蛋挞)(?=.*(?:台湾|tw|🇹🇼|🇼🇸)).*"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🌐 Google
+    type: select
+    proxies:
+      - 🇼🇸 TW
+      - 🚀 Proxy
+      - 🇭🇰 HK
+      - 🇺🇸 US
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: ▶️ YouTube
+    type: select
+    proxies:
+      - 📉 Low Rate
+      - 🚀 Proxy
+      - 🌐 Google
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(香港|hk|台|tw))(?=^(?!.*(专线|家宽|home)).*$)^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 📉 Low Rate
+    type: select
+    proxies:
+      - 🚀 Proxy
+      - 🆓ikuu
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: (?i)(?=.*CAC)(?=.*(香港|hk|台|tw|坡|sg|日|jp)).*$
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🆓ikuu
+    type: fallback
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 600
+    lazy: true
+    use:
+      - ikuu
+    filter: "(?i)(?=.*(ikuu))^.*$"
+    hidden: true
+
+  - name: 🇭🇰 HK
+    type: select
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(香港|hk))^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🇼🇸 TW
+    type: select
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(台|tw))^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🇯🇵 JP
+    type: select
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(日|jp))^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🇸🇬 SG
+    type: select
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(新|sg))^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🇺🇸 US
+    type: select
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(美|us))^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🏴‍☠️ Other
+    type: select
+    use:
+      - ikuu
+      - eggtart
+      - CAC
+    filter: "(?i)(?=.*(^(?!.*(香港|hk|台|tw|美|us|坡|新|sg|日|jp|下方)).*$))^.*$"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: Ⓜ️ Microsoft
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 Proxy
+      - 🇭🇰 HK
+      - 🇼🇸 TW
+      - 🇺🇸 US
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+      - 🏴‍☠️ Other
+      - 📉 Low Rate
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: 🍎 APPLE
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 Proxy
+      - 🇭🇰 HK
+      - 🇼🇸 TW
+      - 🇺🇸 US
+      - 🇯🇵 JP
+      - 🇸🇬 SG
+      - 🏴‍☠️ Other
+      - 📉 Low Rate
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+
+  - name: GLOBAL
+    type: select
+    proxies:
+      - 🚀 Proxy
+      - ✈️ Telegram
+      - 🤖 AI Service
+      - 🌐 Google
+      - ▶️ YouTube
+      - 📉 Low Rate
+      - Ⓜ️ Microsoft
+      - 🍎 APPLE
+      - DIRECT
+
+# 规则集 (Rule Providers)
+rule-providers:
+  reject_non_ip_no_drop:
+    type: http
+    behavior: classical
+    format: text
+    interval: 43200
+    url: 'https://ruleset.skk.moe/Clash/non_ip/reject-no-drop.txt'
+    path: ./rule_set/sukkaw_ruleset/reject_non_ip_no_drop.txt'
+    proxy: 🚀 Proxy
+
+  reject_non_ip_drop:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/reject-drop.txt
+    path: ./rule_set/sukkaw_ruleset/reject_non_ip_drop.txt'
+    proxy: 🚀 Proxy
+
+  cdn_domainset:
+    type: http
+    behavior: domain
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/domainset/cdn.txt
+    path: ./rule_set/sukkaw_ruleset/cdn_domainset.txt
+    proxy: 🚀 Proxy
+
+  cdn_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/cdn.txt
+    path: ./rule_set/sukkaw_ruleset/cdn_non_ip.txt
+    proxy: 🚀 Proxy
+
+  AI_Service:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://raw.githubusercontent.com/Brian-Lynn/AkashaConfig/main/AI-Service.list
+    path: ./rule_set/ai_service.txt
+    proxy: 🚀 Proxy
+
+  telegram_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/telegram.txt
+    path: './rule_set/sukkaw_ruleset/telegram_non_ip.txt'
+    proxy: 🚀 Proxy
+
+  telegram_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/ip/telegram.txt
+    path: './rule_set/sukkaw_ruleset/telegram_ip.txt'
+    proxy: 🚀 Proxy
+
+  apple_cdn:
+    type: http
+    behavior: domain
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/domainset/apple_cdn.txt
+    path: ./rule_set/sukkaw_ruleset/apple_cdn.txt
+    proxy: 🚀 Proxy
+
+  apple_services:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/apple_services.txt
+    path: ./rule_set/sukkaw_ruleset/apple_services.txt
+    proxy: 🚀 Proxy
+
+  apple_cn_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/apple_cn.txt
+    path: ./rule_set/sukkaw_ruleset/apple_cn_non_ip.txt'
+    proxy: 🚀 Proxy
+
+  microsoft_cdn_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/microsoft_cdn.txt
+    path: ./rule_set/sukkaw_ruleset/microsoft_cdn_non_ip.txt
+    proxy: 🚀 Proxy
+
+  microsoft_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/microsoft.txt
+    path: ./rule_set/sukkaw_ruleset/microsoft_non_ip.txt
+    proxy: 🚀 Proxy
+
+  google_main:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Surge/Google/Google.list
+    path: ./rule_set/google_main.txt
+    proxy: 🚀 Proxy
+
+  google_youtube:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/refs/heads/master/rule/Surge/YouTube/YouTube_Resolve.list
+    path: ./rule_set/google_youtube.txt
+    proxy: 🚀 Proxy
+
+  download_domainset:
+    type: http
+    behavior: domain
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/domainset/download.txt
+    path: ./rule_set/sukkaw_ruleset/download_domainset.txt
+    proxy: 🚀 Proxy
+
+  download_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/download.txt
+    path: ./rule_set/sukkaw_ruleset/download_non_ip.txt
+    proxy: 🚀 Proxy
+
+  BeanRules:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://raw.githubusercontent.com/Brian-Lynn/AkashaConfig/main/BeanRules.conf
+    path: ./rule_set/BeanRules.txt
+    proxy: 🚀 Proxy
+
+  lan_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/lan.txt
+    path: ./rule_set/sukkaw_ruleset/lan_non_ip.txt
+    proxy: 🚀 Proxy
+
+  lan_ip:
+    type: http
+    behavior: ipcidr
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/ip/lan.txt
+    path: './rule_set/sukkaw_ruleset/lan_ip.txt'
+    proxy: 🚀 Proxy
+
+  domestic_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/domestic.txt
+    path: './rule_set/sukkaw_ruleset/domestic_non_ip.txt'
+    proxy: 🚀 Proxy
+
+  direct_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/direct.txt
+    path: './rule_set/sukkaw_ruleset/direct_non_ip.txt'
+    proxy: 🚀 Proxy
+
+  global_non_ip:
+    type: http
+    behavior: classical
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/non_ip/global.txt
+    path: ./rule_set/sukkaw_ruleset/global_non_ip.txt
+    proxy: 🚀 Proxy
+
+  domestic_ip:
+    type: http
+    behavior: ipcidr
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/ip/domestic.txt
+    path: './rule_set/sukkaw_ruleset/domestic_ip.txt'
+    proxy: 🚀 Proxy
+
+  china_ip:
+    type: http
+    behavior: ipcidr
+    interval: 43200
+    format: text
+    url: https://ruleset.skk.moe/Clash/ip/china_ip.txt
+    path: './rule_set/sukkaw_ruleset/china_ip.txt'
+    proxy: 🚀 Proxy
+
+# 规则 (Rules)
+rules:
+  # 优先处理 QUIC (例如阻止常用端口的 QUIC 流量，强制回退到 TCP)
+  # Stash 支持 SCRIPT 规则，但需要编写 JS 脚本，这里用更通用的方式
+  # 如果您发现某些应用（如 YouTube）在代理下优先使用 QUIC 导致速度不佳或规则不生效，可以考虑阻止 QUIC
+  # - NETWORK,QUIC,REJECT # 简单粗暴地阻止所有 QUIC
+  # 或者针对特定端口的 UDP 流量 (QUIC 通常运行在 443/udp)
+  - DST-PORT,443,UDP,REJECT # 阻止目标端口为443的UDP流量
+  - DST-PORT,80,UDP,REJECT # 阻止目标端口为80的UDP流量 (HTTP/3 QUIC)
+
+  # 个人直连集
+  - RULE-SET,BeanRules,DIRECT
+  # 直连或国内流量规则
+  - RULE-SET,domestic_non_ip,DIRECT
+  - RULE-SET,direct_non_ip,DIRECT
+  - RULE-SET,lan_non_ip,DIRECT # 局域网域名直连
+
+  # AIGC,Telegram
+  - RULE-SET,AI_Service,🤖 AI Service
+  - RULE-SET,telegram_non_ip,✈️ Telegram
+
+  # Google 规则 (YouTube 独立分流)
+  - RULE-SET,google_main,🌐 Google
+  - RULE-SET,google_youtube,▶️ YouTube
+
+  # 大文件下载规则
+  - RULE-SET,download_domainset,📉 Low Rate
+  - RULE-SET,download_non_ip,📉 Low Rate
+
+  # 全球 CDN 规则
+  - RULE-SET,cdn_domainset,📉 Low Rate
+  - RULE-SET,cdn_non_ip,📉 Low Rate
+
+  # Apple 服务规则
+  - RULE-SET,apple_cdn,DIRECT
+  - GEOIP,CN,DIRECT # 国内 Apple 服务通常也包含在此规则内
+  - RULE-SET,apple_cn_non_ip,🍎 APPLE # 补充规则
+  - RULE-SET,apple_services,🍎 APPLE
+
+  # Microsoft 服务规则
+  - RULE-SET,microsoft_cdn_non_ip,DIRECT
+  - RULE-SET,microsoft_non_ip,Ⓜ️ Microsoft
+
+  # 全局代理规则 (非 IP)
+  - RULE-SET,global_non_ip,🚀 Proxy
+
+  # 广告和跟踪器阻止 (根据您的 mihomo 配置，这些是注释掉的)
+  # - RULE-SET,reject_non_ip,REJECT
+  # - RULE-SET,reject_domainset,REJECT
+  - RULE-SET,reject_non_ip_drop,REJECT-DROP
+  - RULE-SET,reject_non_ip_no_drop,REJECT
+
+  # IP 类规则 (通常放在域名规则之后，以减少不必要的 DNS 解析)
+  - RULE-SET,telegram_ip,✈️ Telegram,no-resolve
+  - RULE-SET,lan_ip,DIRECT,no-resolve # 局域网 IP 直连
+  - RULE-SET,domestic_ip,DIRECT,no-resolve # 国内 IP 直连
+  - GEOIP,CN,DIRECT,no-resolve # 确保中国大陆 IP 直连 (这是 Stash 的标准写法)
+  # - RULE-SET,china_ip,DIRECT,no-resolve # GEOIP,CN 通常更常用且数据更新更及时
+  # - RULE-SET,reject_ip,REJECT,no-resolve
+
+  # 默认规则：所有未匹配上述规则的流量都将指向主代理组
+  - MATCH,🚀 Proxy
