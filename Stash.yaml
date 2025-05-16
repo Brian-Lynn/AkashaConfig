@@ -508,33 +508,33 @@ rules:
   - RULE-SET,lan_non_ip,DIRECT # 局域网域名直连
 
   # AIGC,Telegram
-  - RULE-SET,AI_Service,'🤖 AI Service'
-  - RULE-SET,telegram_non_ip,'✈️ Telegram'
+  - RULE-SET,AI_Service,🤖 AI Service
+  - RULE-SET,telegram_non_ip,✈️ Telegram
 
   # Google 规则 (YouTube 独立分流)
-  - RULE-SET,google_main,'🌐 Google'
-  - RULE-SET,google_youtube,'▶️ YouTube'
+  - RULE-SET,google_main,🌐 Google
+  - RULE-SET,google_youtube,▶️ YouTube
 
   # 大文件下载规则
-  - RULE-SET,download_domainset,'📉 Low Rate'
-  - RULE-SET,download_non_ip,'📉 Low Rate'
+  - RULE-SET,download_domainset,📉 Low Rate
+  - RULE-SET,download_non_ip,📉 Low Rate
 
   # 全球 CDN 规则
-  - RULE-SET,cdn_domainset,'📉 Low Rate'
-  - RULE-SET,cdn_non_ip,'📉 Low Rate'
+  - RULE-SET,cdn_domainset,📉 Low Rate
+  - RULE-SET,cdn_non_ip,📉 Low Rate
 
   # Apple 服务规则
   - RULE-SET,apple_cdn,DIRECT
   - GEOIP,CN,DIRECT # 国内 Apple 服务通常也包含在此规则内
-  - RULE-SET,apple_cn_non_ip,'🍎 APPLE' # 补充规则
-  - RULE-SET,apple_services,'🍎 APPLE'
+  - RULE-SET,apple_cn_non_ip,🍎 APPLE # 补充规则
+  - RULE-SET,apple_services,🍎 APPLE
 
   # Microsoft 服务规则
   - RULE-SET,microsoft_cdn_non_ip,DIRECT
-  - RULE-SET,microsoft_non_ip,'Ⓜ️ Microsoft'
+  - RULE-SET,microsoft_non_ip,Ⓜ️ Microsoft
 
   # 全局代理规则 (非 IP)
-  - RULE-SET,global_non_ip,'🚀 Proxy'
+  - RULE-SET,global_non_ip,🚀 Proxy
 
   # 广告和跟踪器阻止 (根据您的 mihomo 配置，这些是注释掉的)
   # - RULE-SET,reject_non_ip,REJECT
@@ -543,7 +543,7 @@ rules:
   - RULE-SET,reject_non_ip_no_drop,REJECT
 
   # IP 类规则 (通常放在域名规则之后，以减少不必要的 DNS 解析)
-  - RULE-SET,telegram_ip,'✈️ Telegram',no-resolve
+  - RULE-SET,telegram_ip,✈️ Telegram,no-resolve
   - RULE-SET,lan_ip,DIRECT,no-resolve # 局域网 IP 直连
   - RULE-SET,domestic_ip,DIRECT,no-resolve # 国内 IP 直连
   - GEOIP,CN,DIRECT,no-resolve # 确保中国大陆 IP 直连 (这是 Stash 的标准写法)
@@ -551,4 +551,4 @@ rules:
   # - RULE-SET,reject_ip,REJECT,no-resolve
 
   # 默认规则：所有未匹配上述规则的流量都将指向主代理组
-  - MATCH,'🚀 Proxy'
+  - MATCH,🚀 Proxy
